@@ -1,3 +1,4 @@
+#include <stdint.h>
 #include <stdio.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -9,6 +10,12 @@ static const char *TAG = "ST8XXX_NM main";
 
 void ST8XXX_NM_task(void *pvParams) {
     sf8xxx_nm_init();
+
+    uint16_t serial_number, device_id;
+    sf8xxx_nm_get_serial_number(&serial_number);
+    sf8xxx_nm_get_device_id(&device_id);
+    ESP_LOGI(TAG, "Serial number: %d", serial_number);
+    ESP_LOGI(TAG, "Device id: %d", device_id);
 
     while (1) {
         float frequency_hz;
