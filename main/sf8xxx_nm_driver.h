@@ -1,5 +1,5 @@
-#ifndef SFXXX_NM_DRIVER_H
-#define SFXXX_NM_DRIVER_H
+#ifndef SF8XXX_NM_DRIVER_H
+#define SF8XXX_NM_DRIVER_H
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -132,4 +132,4 @@ sf8xxx_nm_err_t sf8xxx_nm_get_i_coefficient(uint16_t *i_coef);
 sf8xxx_nm_err_t sf8xxx_nm_set_d_coefficient(uint16_t d_coef);
 sf8xxx_nm_err_t sf8xxx_nm_get_d_coefficient(uint16_t *d_coef);
 
-#endif  // SFXXX_NM_DRIVER_H
+#endif  // SF8XXX_NM_DRIVER_H
