@@ -42,7 +42,7 @@ menu "SF8XXX_NM Configuration"
     config SF8XXX_NM_RESPONSE_TIMEOUT_MS
         int "Response Timeout (ms)"
         range 1 2000
-        default 1000
+        default 100
         help
             Timeout in milliseconds for waiting for a response from the SF8XXX_NM driver.
    

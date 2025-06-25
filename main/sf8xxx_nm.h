@@ -1,30 +1,10 @@
-#ifndef SF8XXX_NM_DRIVER_H
-#define SF8XXX_NM_DRIVER_H
+#ifndef SF8XXX_NM_H
+#define SF8XXX_NM_H
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#define SF8XXX_NM_UART_PORT_NUM CONFIG_SF8XXX_NM_UART_PORT_NUM
-#define SF8XXX_NM_UART_BAUDRATE CONFIG_SF8XXX_NM_UART_BAUDRATE
-#define SF8XXX_NM_UART_TXD CONFIG_SF8XXX_NM_UART_TXD
-#define SF8XXX_NM_UART_RXD CONFIG_SF8XXX_NM_UART_RXD
-#define SF8XXX_NM_RX_BUF_SIZE 256
-#define SF8XXX_NM_TX_BUF_SIZE 256
-
-// TODO:
-// typedef enum {
-// } sf8xxx_nm_param_code_t;
-
-typedef enum {
-    SF8XXX_NM_E0000 = 0, // Internal buffer overflow, cannot find <CR>/<LF>, invalid command format 
-    SF8XXX_NM_E0001 = 1, // Unknown command or failed to interpret 
-    SF8XXX_NM_E0002 = 2, // CRC mismatch (for extended protocol) 
-    SF8XXX_NM_OK    = 3, // Operation successful
-    SF8XXX_NM_ERROR_TIMEOUT = 4, // Timeout during communication
-    SF8XXX_NM_ERROR_PARSE = 5, // Error parsing response
-    SF8XXX_NM_ERROR_INVALID_PARAM = 6, // Invalid parameter value
-    SF8XXX_NM_ERROR_RESERVED = 7,
-} sf8xxx_nm_err_t;
+#include "sf8xxx_nm_defs.h"
 
 sf8xxx_nm_err_t sf8xxx_nm_init(void);
 void sf8xxx_nm_deinit(void);
@@ -132,4 +112,4 @@ sf8xxx_nm_err_t sf8xxx_nm_get_i_coefficient(uint16_t *i_coef);
 sf8xxx_nm_err_t sf8xxx_nm_set_d_coefficient(uint16_t d_coef);
 sf8xxx_nm_err_t sf8xxx_nm_get_d_coefficient(uint16_t *d_coef);
 
-#endif  // SF8XXX_NM_DRIVER_H
+#endif  // SF8XXX_NM_H
