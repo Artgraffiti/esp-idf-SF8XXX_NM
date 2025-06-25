@@ -38,5 +38,25 @@ menu "SF8XXX_NM Configuration"
         default 115200
         help
             Baud rate for the UART communication. The driver's default is 115200.
+    
+    config SF8XXX_NM_RESPONSE_TIMEOUT_MS
+        int "Response Timeout (ms)"
+        range 1 2000
+        default 1000
+        help
+            Timeout in milliseconds for waiting for a response from the SF8XXX_NM driver.
    
+    config SF8XXX_NM_RX_BUF_SIZE
+        int "UART RX Buffer Size"
+        default 256
+        range 32 1024
+        help
+            Size of the UART receive buffer in bytes.
+
+    config SF8XXX_NM_TX_BUF_SIZE
+        int "UART TX Buffer Size"
+        default 256
+        range 32 1024
+        help
+            Size of the UART transmit buffer in bytes.
 endmenu
