@@ -5,7 +5,7 @@
 #include <sys/param.h>
 #include "esp_netif.h"
 #include <esp_http_server.h>
-#include "sf8xxx_nm_driver.h"
+#include "sf8xxx_nm.h"
 #include <string.h>
 #include <stdio.h>
 
