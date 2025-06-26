@@ -98,6 +98,9 @@ sf8xxx_nm_err_t sf8xxx_nm_set_parameter(sf8xxx_nm_param_code_t param_num, uint16
         return SF8XXX_NM_ERROR_RESERVED;
     }
 
+    // User delay
+    esp_rom_delay_us(SF8XXX_NM_DELAY_BTW_CMDS * 1000);
+
     return SF8XXX_NM_OK;
 }
 
@@ -129,8 +132,11 @@ sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16
     if (received_param_num != param_num) {
         return SF8XXX_NM_ERROR_PARSE;
     }
-
     *value = (uint16_t)received_value_u;
+
+    // User delay
+    esp_rom_delay_us(SF8XXX_NM_DELAY_BTW_CMDS * 1000);
+
     return SF8XXX_NM_OK;
 }
 

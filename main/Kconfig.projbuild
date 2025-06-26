@@ -59,4 +59,11 @@ menu "SF8XXX_NM Configuration"
         range 32 1024
         help
             Size of the UART transmit buffer in bytes.
+    
+    config SF8XXX_NM_DELAY_BTW_CMDS
+        int "Delay between commands (ms)"
+        range 0 1000
+        default 150
+        help
+            Delay in milliseconds to wait between sending consecutive commands to the SF8XXX_NM driver.
 endmenu
