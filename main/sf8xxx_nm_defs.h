@@ -160,7 +160,7 @@ typedef struct {
     unsigned int temp_set_internal          : 1; // 2nd bit: Temperature set: 0 – External; 1 – Internal
     unsigned int reserved_bit_3             : 1; // 3rd bit: Reserved
     unsigned int enable_internal            : 1; // 4th bit: Enable: 0 – External; 1 – Internal
-    unsigned int                            : 3; // Remaining 11 bits
+    unsigned int                            : 3; // Remaining 3 bits
 } sf8xxx_nm_tec_state_info_t;
 
 typedef struct {

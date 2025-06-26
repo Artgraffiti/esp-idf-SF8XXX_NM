@@ -25,6 +25,13 @@ void print_driver_state(sf8xxx_nm_driver_state_info_t driver_state) {
     ESP_LOGI(TAG, "Интерлок отклонен: %s", driver_state.interlock_denied ? "ДА" : "НЕТ");
 }
 
+void print_tec_state(const sf8xxx_nm_tec_state_info_t tec_state) {
+    ESP_LOGI(TAG, "--- Состояние TEC ---");
+    ESP_LOGI(TAG, "TEC ЗАПУЩЕН: %s", tec_state.is_started ? "ДА" : "НЕТ");
+    ESP_LOGI(TAG, "Температура TEC установлена внутренним: %s", tec_state.temp_set_internal ? "ДА" : "НЕТ");
+    ESP_LOGI(TAG, "TEC включен внутренним: %s", tec_state.enable_internal ? "ДА" : "НЕТ");
+}
+
 void ST8XXX_NM_task(void *pvParams) {
     sf8xxx_nm_err_t err = SF8XXX_NM_OK;
     sf8xxx_nm_init();
@@ -71,7 +78,7 @@ void ST8XXX_NM_task(void *pvParams) {
     }
     DELAY_BTW_CMDS;
 
-    err = sf8xxx_nm_set_current(100.0);
+    err = sf8xxx_nm_set_current(150.0);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки тока на ЛД.");
     }
@@ -85,7 +92,7 @@ void ST8XXX_NM_task(void *pvParams) {
     }
     DELAY_BTW_CMDS;
 
-    err = sf8xxx_nm_set_tec_temp(20.0);
+    err = sf8xxx_nm_set_tec_temp(17.0);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки температуры на TEC.");
     }
@@ -95,11 +102,51 @@ void ST8XXX_NM_task(void *pvParams) {
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка чтения температуры на TEC.");
     } else {
-        ESP_LOGI(TAG, "Установленная температура на TEC: %.1f C.", current_val);
+        ESP_LOGI(TAG, "Установленная температура на TEC: %.1f C.", tec_temp);
     }
     DELAY_BTW_CMDS;
 
+    // Preparing TEC for launch
+    sf8xxx_nm_tec_state_info_t tec_state;
+    err = sf8xxx_nm_get_tec_state(&tec_state);
+    if (err != SF8XXX_NM_OK) {
+        ESP_LOGE(TAG, "Ошибка чтения состояния TEC.");
+    } else {
+        ESP_LOGI(TAG, "Начальное состояние TEC:");
+        print_tec_state(tec_state);
+    }
+    DELAY_BTW_CMDS;
     
+    err = sf8xxx_nm_set_tec_state(SF8XXX_NM_TEC_STATE_WRITE_INTERNAL_ENABLE);
+    if (err != SF8XXX_NM_OK) {
+        ESP_LOGE(TAG, "Ошибка установки состояния TEC.");
+    }
+    DELAY_BTW_CMDS;
+
+    err = sf8xxx_nm_set_tec_state(SF8XXX_NM_TEC_STATE_WRITE_INTERNAL_TEMP_SET);
+    if (err != SF8XXX_NM_OK) {
+        ESP_LOGE(TAG, "Ошибка установки состояния TEC.");
+    }
+    DELAY_BTW_CMDS;
+
+    err = sf8xxx_nm_set_tec_state(SF8XXX_NM_TEC_STATE_WRITE_START);
+    if (err != SF8XXX_NM_OK) {
+        ESP_LOGE(TAG, "Ошибка установки состояния TEC.");
+    } else {
+        ESP_LOGI(TAG, "TEC ЗАПУЩЕН!");
+    }
+    DELAY_BTW_CMDS;
+
+    err = sf8xxx_nm_get_tec_state(&tec_state);
+    if (err != SF8XXX_NM_OK) {
+        ESP_LOGE(TAG, "Ошибка чтения состояния TEC.");
+    } else {
+        ESP_LOGI(TAG, "Начальное состояние TEC:");
+        print_tec_state(tec_state);
+    }
+    DELAY_BTW_CMDS;
+
+    // Preparing the LD for launch
     sf8xxx_nm_driver_state_info_t driver_state;
     err = sf8xxx_nm_get_driver_state(&driver_state);
     if (err != SF8XXX_NM_OK) {
@@ -128,6 +175,8 @@ void ST8XXX_NM_task(void *pvParams) {
     }
     DELAY_BTW_CMDS;
 
+    float tec_mes_val = -100;
+    float ext_ntc_sens = -100;
     while (1) {
         err = sf8xxx_nm_set_driver_state(SF8XXX_NM_DRIVER_STATE_WRITE_START);
         if (err != SF8XXX_NM_OK) {
@@ -137,18 +186,26 @@ void ST8XXX_NM_task(void *pvParams) {
         }
         DELAY_BTW_CMDS;
         
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(4000));
 
-
-        err = sf8xxx_nm_set_driver_state(SF8XXX_NM_DRIVER_STATE_WRITE_STOP);
+        err = sf8xxx_nm_get_tec_temp_measured(&tec_mes_val);
         if (err != SF8XXX_NM_OK) {
-            ESP_LOGE(TAG, "Ошибка выключения ЛД.");
+            ESP_LOGE(TAG, "Ошибка запроса замера температуры.");
         } else {
-            ESP_LOGI(TAG, "ЛД выкл.");
+            ESP_LOGI(TAG, "Температура на TEC: %.1f", tec_mes_val);
         }
         DELAY_BTW_CMDS;
-        
-        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        err = sf8xxx_nm_get_external_ntc_temp_measured(&ext_ntc_sens);
+        if (err != SF8XXX_NM_OK) {
+            ESP_LOGE(TAG, "Ошибка запроса замера с NTC.");
+        } else {
+            ESP_LOGI(TAG, "Показания с NTC: %.1f", ext_ntc_sens);
+        }
+        DELAY_BTW_CMDS;
+
+        err = sf8xxx_nm_get_tec_temp_measured(&tec_mes_val);
+
     }
 
     // never reach here
