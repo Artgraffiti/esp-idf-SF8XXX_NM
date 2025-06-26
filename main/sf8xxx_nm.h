@@ -14,9 +14,9 @@ int sf8xxx_nm_send_command(const char *command);
 int sf8xxx_nm_receive_response(char *buffer, int buffer_len);
 
 // Helper function to send P-type (set) commands
-sf8xxx_nm_err_t sf8xxx_nm_set_parameter(uint16_t param_num, uint16_t value);
+sf8xxx_nm_err_t sf8xxx_nm_set_parameter(sf8xxx_nm_param_code_t param_num, uint16_t value);
 // Helper function to send J-type (get) commands and receive K-type responses
-sf8xxx_nm_err_t sf8xxx_nm_get_parameter(uint16_t param_num, uint16_t *value);
+sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16_t *value);
 
 // Datasheet p.20 table "Available parameters and its description"
 // Frequency (0.1 Hz)

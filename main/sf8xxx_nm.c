@@ -34,6 +34,9 @@ void sf8xxx_nm_deinit(void) {
 }
 
 static sf8xxx_nm_err_t sf8xxx_nm_parse_protocol_error_response(const char *response) {
+    if (response == NULL)
+        return SF8XXX_NM_ERROR_RESERVED;
+
     if (strcmp(response, SF8XXX_NM_PROTOCOL_ERROR_INTERNAL_BUFFER_OVERFLOW) == 0) {
         ESP_LOGE(TAG, "Protocol Error: Internal Buffer Overflow / Invalid Command Format (E0000)");
         return SF8XXX_NM_ERROR_RESERVED;
@@ -54,6 +57,9 @@ static sf8xxx_nm_err_t sf8xxx_nm_parse_protocol_error_response(const char *respo
 }
 
 int sf8xxx_nm_send_command(const char *command) {
+    if (command == NULL)
+        return SF8XXX_NM_ERROR_RESERVED;
+
     size_t len = strlen(command);
     int tx_bytes = uart_write_bytes(SF8XXX_NM_UART_PORT_NUM, command, len);
     ESP_LOGD(TAG, "Sent %d bytes: %s", tx_bytes, command);
@@ -63,6 +69,9 @@ int sf8xxx_nm_send_command(const char *command) {
 int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
     int idx = 0;
     TickType_t timeout_ticks = pdMS_TO_TICKS(SF8XXX_NM_RESPONSE_TIMEOUT_MS);
+
+    if (buffer == NULL)
+        return SF8XXX_NM_ERROR_RESERVED;
 
     while (idx < buffer_len - 1) {
         uint8_t ch;
@@ -82,7 +91,7 @@ int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
     return idx;
 }
 
-sf8xxx_nm_err_t sf8xxx_nm_set_parameter(uint16_t param_num, uint16_t value) {
+sf8xxx_nm_err_t sf8xxx_nm_set_parameter(sf8xxx_nm_param_code_t param_num, uint16_t value) {
     char command[SF8XXX_NM_TX_BUF_SIZE];
     snprintf(command, SF8XXX_NM_TX_BUF_SIZE, "P%04X %04X\r", param_num, value);
     if (sf8xxx_nm_send_command(command) < 0) {
@@ -92,10 +101,13 @@ sf8xxx_nm_err_t sf8xxx_nm_set_parameter(uint16_t param_num, uint16_t value) {
     return SF8XXX_NM_OK;
 }
 
-sf8xxx_nm_err_t sf8xxx_nm_get_parameter(uint16_t param_num, uint16_t *value) {
+sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16_t *value) {
     char command[SF8XXX_NM_TX_BUF_SIZE];
     char response[SF8XXX_NM_RX_BUF_SIZE];
     int bytes_read;
+
+    if (value == NULL)
+        return SF8XXX_NM_ERROR_RESERVED;
 
     snprintf(command, SF8XXX_NM_TX_BUF_SIZE, "J%04X\r", param_num);
     if (sf8xxx_nm_send_command(command) < 0) {
@@ -267,9 +279,6 @@ sf8xxx_nm_err_t sf8xxx_nm_get_measured_voltage(float *measured_voltage_val) {
 
 // State of the driver
 sf8xxx_nm_err_t sf8xxx_nm_get_driver_state(sf8xxx_nm_driver_state_info_t *driver_state) {
-    if (driver_state == NULL) {
-        return SF8XXX_NM_ERROR_PARSE;
-    }
     uint16_t raw_flags;
     sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DRIVER_STATE, &raw_flags);
     if (err != SF8XXX_NM_OK) {
@@ -299,9 +308,6 @@ sf8xxx_nm_err_t sf8xxx_nm_get_device_id(uint16_t *device_id) {
 
 // Lock status (bit mask)
 sf8xxx_nm_err_t sf8xxx_nm_get_lock_status(sf8xxx_nm_lock_status_info_t *lock_status) {
-    if (lock_status == NULL) {
-        return SF8XXX_NM_ERROR_PARSE;
-    }
     uint16_t raw_flags;
     sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_LOCK_STATUS, &raw_flags);
     if (err != SF8XXX_NM_OK) {
@@ -370,9 +376,6 @@ sf8xxx_nm_err_t sf8xxx_nm_set_external_ntc_sensor_temp_upper_limit(float temp_li
     return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT, value);
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_external_ntc_sensor_b25_100(float *b25_100_val) {
-    if (b25_100_val == NULL) {
-        return SF8XXX_NM_ERROR_PARSE;
-    }
     uint16_t value = FLOAT_TO_UINT16(*b25_100_val, 1.0f);
     return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC, value);
 }
@@ -473,9 +476,6 @@ sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_voltage(float *measured_val) {
 
 // State of the TEC
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_state(sf8xxx_nm_tec_state_info_t *tec_state) {
-    if (tec_state == NULL) {
-        return SF8XXX_NM_ERROR_PARSE;
-    }
     uint16_t raw_flags;
     sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_STATE, &raw_flags);
     if (err != SF8XXX_NM_OK) {
