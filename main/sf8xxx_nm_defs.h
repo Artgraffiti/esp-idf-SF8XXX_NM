@@ -1,6 +1,9 @@
 #ifndef SF8XXX_NM_DEFS_H
 #define SF8XXX_NM_DEFS_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #define SF8XXX_NM_UART_PORT_NUM CONFIG_SF8XXX_NM_UART_PORT_NUM
 #define SF8XXX_NM_UART_BAUDRATE CONFIG_SF8XXX_NM_UART_BAUDRATE
 #define SF8XXX_NM_UART_TXD CONFIG_SF8XXX_NM_UART_TXD
@@ -9,9 +12,9 @@
 #define SF8XXX_NM_RX_BUF_SIZE CONFIG_SF8XXX_NM_RX_BUF_SIZE
 #define SF8XXX_NM_TX_BUF_SIZE CONFIG_SF8XXX_NM_TX_BUF_SIZE
 
-#define SF8XXX_NM_PROTOCOL_ERROR_INTERNAL_BUFFER_OVERFLOW   "E0000\r" // E0000: Internal buffer overflow / Invalid command format
-#define SF8XXX_NM_PROTOCOL_ERROR_UNKNOWN_COMMAND            "E0001\r" // E0001: Unknown command / Failed to interpret command
-#define SF8XXX_NM_PROTOCOL_ERROR_CRC                        "E0002\r" // E0002: CRC of received command error
+#define SF8XXX_NM_PROTOCOL_ERROR_INTERNAL_BUFFER_OVERFLOW   "E0000\r" // E0000: Digital buffer overflow or command format invalid
+#define SF8XXX_NM_PROTOCOL_ERROR_UNKNOWN_COMMAND            "E0001\r" // E0001: Unknown or unrecognized command
+#define SF8XXX_NM_PROTOCOL_ERROR_CRC                        "E0002\r" // E0002: CRC failure
 #define SF8XXX_NM_PROTOCOL_ERROR_PARAMETER_NOT_EXIST        "K0000 0000\r"  // K0000 0000: Request or set parameter that does not exist. 
 
 typedef enum {
@@ -35,63 +38,63 @@ typedef enum {
 } sf8xxx_nm_err_t;
 
 typedef enum {
-    SF8XXX_NM_PARAM_FREQUENCY_VALUE = 0x0100,
-    SF8XXX_NM_PARAM_FREQUENCY_MIN = 0x0101,
-    SF8XXX_NM_PARAM_FREQUENCY_MAX = 0x0102,
+    SF8XXX_NM_PARAM_FREQUENCY_VALUE =                           0x0100,
+    SF8XXX_NM_PARAM_FREQUENCY_MIN =                             0x0101,
+    SF8XXX_NM_PARAM_FREQUENCY_MAX =                             0x0102,
 
-    SF8XXX_NM_PARAM_DURATION_VALUE = 0x0200,
-    SF8XXX_NM_PARAM_DURATION_MIN = 0x0201,
-    SF8XXX_NM_PARAM_DURATION_MAX = 0x0202,
+    SF8XXX_NM_PARAM_DURATION_VALUE =                            0x0200,
+    SF8XXX_NM_PARAM_DURATION_MIN =                              0x0201,
+    SF8XXX_NM_PARAM_DURATION_MAX =                              0x0202,
 
-    SF8XXX_NM_PARAM_CURRENT_VALUE = 0x0300,
-    SF8XXX_NM_PARAM_CURRENT_MIN = 0x0301,
-    SF8XXX_NM_PARAM_CURRENT_MAX = 0x0302,
-    SF8XXX_NM_PARAM_CURRENT_MAX_LIMIT = 0x0306,
-    SF8XXX_NM_PARAM_CURRENT_MEASURED_VALUE = 0x0307,
-    SF8XXX_NM_PARAM_CURRENT_PROTECTION_THRESHOLD = 0x0308,
+    SF8XXX_NM_PARAM_CURRENT_VALUE =                             0x0300,
+    SF8XXX_NM_PARAM_CURRENT_MIN =                               0x0301,
+    SF8XXX_NM_PARAM_CURRENT_MAX =                               0x0302,
+    SF8XXX_NM_PARAM_CURRENT_MAX_LIMIT =                         0x0306,
+    SF8XXX_NM_PARAM_CURRENT_MEASURED_VALUE =                    0x0307,
+    SF8XXX_NM_PARAM_CURRENT_PROTECTION_THRESHOLD =              0x0308,
 
-    SF8XXX_NM_PARAM_CURRENT_SET_CALIBRATION_VALUE = 0x030E,
+    SF8XXX_NM_PARAM_CURRENT_SET_CALIBRATION_VALUE =             0x030E,
 
-    SF8XXX_NM_PARAM_VOLTAGE_MEASURED_VALUE = 0x0407,
+    SF8XXX_NM_PARAM_VOLTAGE_MEASURED_VALUE =                    0x0407,
 
-    SF8XXX_NM_PARAM_DRIVER_STATE = 0x0700,
+    SF8XXX_NM_PARAM_DRIVER_STATE =                              0x0700,
 
-    SF8XXX_NM_PARAM_SERIAL_NUMBER = 0x0701,
-    SF8XXX_NM_PARAM_DEVICE_ID = 0x0702,
+    SF8XXX_NM_PARAM_SERIAL_NUMBER =                             0x0701,
+    SF8XXX_NM_PARAM_DEVICE_ID =                                 0x0702,
 
-    SF8XXX_NM_PARAM_LOCK_STATUS = 0x0800,
+    SF8XXX_NM_PARAM_LOCK_STATUS =                               0x0800,
 
-    SF8XXX_NM_PARAM_SAVE_PARAMETERS = 0x0900,
-    SF8XXX_NM_PARAM_RESET_PARAMETERS = 0x0901,
+    SF8XXX_NM_PARAM_SAVE_PARAMETERS =                           0x0900,
+    SF8XXX_NM_PARAM_RESET_PARAMETERS =                          0x0901,
 
-    SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_LOWER_LIMIT = 0x0A05,
-    SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT = 0x0A06,
-    SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_MEASURED_VALUE = 0x0AE4,
-    SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC = 0x0B0E,
+    SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_LOWER_LIMIT =      0x0A05,
+    SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT =      0x0A06,
+    SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_MEASURED_VALUE =   0x0AE4,
+    SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC =                      0x0B0E,
 
-    SF8XXX_NM_PARAM_TEC_TEMPERATURE_VALUE = 0x0A10,
-    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX = 0x0A11,
-    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN = 0x0A12,
-    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX_LIMIT = 0x0A13,
-    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN_LIMIT = 0x0A14,
-    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MEASURED_VALUE = 0x0A15,
+    SF8XXX_NM_PARAM_TEC_TEMPERATURE_VALUE =                     0x0A10,
+    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX =                       0x0A11,
+    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN =                       0x0A12,
+    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX_LIMIT =                 0x0A13,
+    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN_LIMIT =                 0x0A14,
+    SF8XXX_NM_PARAM_TEC_TEMPERATURE_MEASURED_VALUE =            0x0A15,
 
-    SF8XXX_NM_PARAM_TEC_CURRENT_MEASURED_VALUE = 0x0A16,
-    SF8XXX_NM_PARAM_TEC_CURRENT_LIMIT = 0x0A17,
+    SF8XXX_NM_PARAM_TEC_CURRENT_MEASURED_VALUE =                0x0A16,
+    SF8XXX_NM_PARAM_TEC_CURRENT_LIMIT =                         0x0A17,
 
-    SF8XXX_NM_PARAM_TEC_VOLTAGE_MEASURED_VALUE = 0x0A18,
+    SF8XXX_NM_PARAM_TEC_VOLTAGE_MEASURED_VALUE =                0x0A18,
 
-    SF8XXX_NM_PARAM_TEC_STATE = 0x0A1A,
+    SF8XXX_NM_PARAM_TEC_STATE =                                 0x0A1A,
 
-    SF8XXX_NM_PARAM_TEC_CURRENT_SET_CALIBRATION_VALUE = 0x0A1E,
+    SF8XXX_NM_PARAM_TEC_CURRENT_SET_CALIBRATION_VALUE =         0x0A1E,
 
-    SF8XXX_NM_PARAM_INTERNAL_LD_NTC_SENSOR_B25_100 = 0x0A1F,
+    SF8XXX_NM_PARAM_INTERNAL_LD_NTC_SENSOR_B25_100 =            0x0A1F,
 
-    SF8XXX_NM_PARAM_P_COEFFICIENT_VALUE = 0x0A21,
-    SF8XXX_NM_PARAM_I_COEFFICIENT_VALUE = 0x0A22,
-    SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE = 0x0A23,
+    SF8XXX_NM_PARAM_P_COEFFICIENT_VALUE =                       0x0A21,
+    SF8XXX_NM_PARAM_I_COEFFICIENT_VALUE =                       0x0A22,
+    SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE =                       0x0A23,
 
-    // TODO: SF8XXX_NM_PARAM_EXTENDED_PROTOCOL_INFO = 0x0704, // Used for configuring extended protocol
+    // TODO: SF8XXX_NM_PARAM_EXTENDED_PROTOCOL_INFO =           0x0704, // Used for configuring extended protocol
 } sf8xxx_nm_param_code_t;
 
 typedef enum {
@@ -127,7 +130,7 @@ typedef enum {
 
 typedef enum {
     SF8XXX_NM_TEC_STATE_STARTED =               (1 << 1), // 1-st bit: 0 – Stopped; 1 – Started
-    SF8XXX_NM_TEC_STATE_TEMP_SET_INTERNAL =     (1 << 2), // 2-rd bit: Temperature set: 0 – External; 1 – Internal
+    SF8XXX_NM_TEC_STATE_TEMP_SET_INTERNAL =     (1 << 2), // 2-nd bit: Temperature set: 0 – External; 1 – Internal
     SF8XXX_NM_TEC_STATE_ENABLE_INTERNAL =       (1 << 4), // 4-th bit: Enable: 0 – External; 1 – Internal
 } sf8xxx_nm_tec_state_r_flags_t;
 
@@ -138,5 +141,36 @@ typedef enum {
     SF8XXX_NM_TEC_STATE_WRITE_EXTERNAL_TEMP_SET =   0x0040, // External temperature set
     SF8XXX_NM_TEC_STATE_WRITE_EXTERNAL_ENABLE =     0x0200, // Internal Enable
 } sf8xxx_nm_tec_state_w_flags_t;
+
+typedef struct {
+    unsigned int is_powered_on              : 1; // 0th bit: 1 – Device is powered on (always = 1)
+    unsigned int is_started                 : 1; // 1st bit: 0 – Stopped; 1 – Started
+    unsigned int current_set_internal       : 1; // 2nd bit: Current set: 0 – External; 1 – Internal
+    unsigned int reserved_bit_3             : 1; // 3rd bit: Reserved
+    unsigned int enable_internal            : 1; // 4th bit: Enable: 0 – External; 1 – Internal
+    unsigned int reserved_bit_5             : 1; // 5th bit: Reserved
+    unsigned int ext_ntc_interlock_denied   : 1; // 6th bit: External NTC Interlock: 0 – Allowed; 1 – Denied
+    unsigned int interlock_denied           : 1; // 7th bit: Interlock: 0 – Allowed; 1 – Denied
+} sf8xxx_nm_driver_state_info_t;
+
+typedef struct {
+    unsigned int reserved_bit_0             : 1; // 0th bit: Reserved
+    unsigned int is_started                 : 1; // 1st bit: 0 – Stopped; 1 – Started
+    unsigned int temp_set_internal          : 1; // 2nd bit: Temperature set: 0 – External; 1 – Internal
+    unsigned int reserved_bit_3             : 1; // 3rd bit: Reserved
+    unsigned int enable_internal            : 1; // 4th bit: Enable: 0 – External; 1 – Internal
+    unsigned int                            : 3; // Remaining 11 bits
+} sf8xxx_nm_tec_state_info_t;
+
+typedef struct {
+    unsigned int reserved_bit_0             : 1; // 0th bit: Reserved
+    unsigned int interlock                  : 1; // 1st bit: Interlock
+    unsigned int reserved_bit_2             : 1; // 2nd bit: Reserved
+    unsigned int ld_over_current            : 1; // 3rd bit: LD over current
+    unsigned int ld_overheat                : 1; // 4th bit: LD overheat
+    unsigned int ext_ntc_interlock          : 1; // 5th bit: External NTC Interlock
+    unsigned int tec_error                  : 1; // 6th bit: TEC error
+    unsigned int tec_self_heat              : 1; // 7th bit: TEC self-heat
+} sf8xxx_nm_lock_status_info_t;
 
 #endif  // SF8XXX_NM_DEFS_H
