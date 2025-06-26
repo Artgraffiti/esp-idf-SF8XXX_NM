@@ -33,21 +33,21 @@ void ST8XXX_NM_task(void *pvParams) {
     while (1) {
         float frequency_hz;
         ESP_LOGI(TAG, "Set frequency 0.0 Hz");
-        sf8xxx_nm_set_frequency(0.0);
+        sf8xxx_nm_set_freq(0.0);
 
         DELAY_BTW_CMDS;
 
-        sf8xxx_nm_get_frequency(&frequency_hz);
+        sf8xxx_nm_get_freq(&frequency_hz);
         ESP_LOGI(TAG, "Measured Frequency: %.1f Hz", frequency_hz);
 
         DELAY_BTW_CMDS;
 
         ESP_LOGI(TAG, "Set frequency 10.2 Hz");
-        sf8xxx_nm_set_frequency(10.2);
+        sf8xxx_nm_set_freq(10.2);
 
         DELAY_BTW_CMDS;
 
-        sf8xxx_nm_get_frequency(&frequency_hz);
+        sf8xxx_nm_get_freq(&frequency_hz);
         ESP_LOGI(TAG, "Measured Frequency: %.1f Hz", frequency_hz);
 
         vTaskDelay(pdMS_TO_TICKS(1500));

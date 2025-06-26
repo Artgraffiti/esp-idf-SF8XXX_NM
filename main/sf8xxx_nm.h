@@ -86,9 +86,9 @@ sf8xxx_nm_err_t sf8xxx_nm_set_tec_temp_max(float temp_max);
 sf8xxx_nm_err_t sf8xxx_nm_set_tec_temp_min(float temp_min);
 
 // TEC current (0.1 A)
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_current(float *current);
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_current_limit(float *current);
-sf8xxx_nm_err_t sf8xxx_nm_set_tec_current_limit(float current);
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_current(float *measured_val);
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_current_limit(float *current_limit);
+sf8xxx_nm_err_t sf8xxx_nm_set_tec_current_limit(float current_limit);
 
 // TEC voltage (0.1 V)
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_voltage(float *measured_val);
@@ -96,11 +96,6 @@ sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_voltage(float *measured_val);
 // State of the TEC
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_state(sf8xxx_nm_tec_state_info_t *tec_state);
 sf8xxx_nm_err_t sf8xxx_nm_set_tec_state(sf8xxx_nm_tec_state_w_flags_t flag);
-
-// Current set callibration (0.01%)
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_current(float *measured_val);
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_current_limit(float *current_limit);
-sf8xxx_nm_err_t sf8xxx_nm_set_tec_current_limit(float current_limit);
 
 // Current set callibration (0.01%)
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_calibration_current(float *calibration_val);
