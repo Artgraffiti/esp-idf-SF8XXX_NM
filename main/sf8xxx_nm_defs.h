@@ -139,7 +139,8 @@ typedef enum {
     SF8XXX_NM_TEC_STATE_WRITE_STOP =                0x0010, // Stop (Disable)
     SF8XXX_NM_TEC_STATE_WRITE_INTERNAL_TEMP_SET =   0x0020, // Internal temperature set
     SF8XXX_NM_TEC_STATE_WRITE_EXTERNAL_TEMP_SET =   0x0040, // External temperature set
-    SF8XXX_NM_TEC_STATE_WRITE_EXTERNAL_ENABLE =     0x0200, // Internal Enable
+    SF8XXX_NM_TEC_STATE_WRITE_EXTERNAL_ENABLE =     0x0200, // External Enable
+    SF8XXX_NM_TEC_STATE_WRITE_INTERNAL_ENABLE =     0x0400, // Internal Enable
 } sf8xxx_nm_tec_state_w_flags_t;
 
 typedef struct {
