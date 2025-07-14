@@ -49,8 +49,8 @@ sf8xxx_nm_err_t sf8xxx_nm_set_calibration_current(float calibration_val);
 sf8xxx_nm_err_t sf8xxx_nm_get_measured_voltage(float *measured_voltage_val);
 
 // State of the driver
-sf8xxx_nm_err_t sf8xxx_nm_get_driver_state(sf8xxx_nm_driver_state_info_t *driver_state);
-sf8xxx_nm_err_t sf8xxx_nm_set_driver_state(sf8xxx_nm_driver_state_w_flags_t flag);
+sf8xxx_nm_err_t sf8xxx_nm_get_state(sf8xxx_nm_state_info_t *drv_state);
+sf8xxx_nm_err_t sf8xxx_nm_set_state(sf8xxx_nm_state_w_flags_t flag);
 
 // Serial number
 sf8xxx_nm_err_t sf8xxx_nm_get_serial_number(uint16_t *serial_number);

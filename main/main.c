@@ -13,7 +13,7 @@
 
 static const char *TAG = "ST8XXX_NM main";
 
-void print_driver_state(sf8xxx_nm_driver_state_info_t driver_state) {
+void print_driver_state(sf8xxx_nm_state_info_t driver_state) {
     ESP_LOGI(TAG, "--- Состояние драйвера ---");
     ESP_LOGI(TAG, "Драйвер ВКЛ: %s", driver_state.is_powered_on ? "ДА" : "НЕТ");
     ESP_LOGI(TAG, "Драйвер ЗАПУЩЕН: %s", driver_state.is_started ? "ДА" : "НЕТ");
@@ -132,8 +132,8 @@ void ST8XXX_NM_task(void *pvParams) {
     }
     
     // Preparing the LD for launch
-    sf8xxx_nm_driver_state_info_t driver_state;
-    err = sf8xxx_nm_get_driver_state(&driver_state);
+    sf8xxx_nm_state_info_t driver_state;
+    err = sf8xxx_nm_get_state(&driver_state);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка чтения состояния драйвера.");
     } else {
@@ -141,17 +141,17 @@ void ST8XXX_NM_task(void *pvParams) {
         print_driver_state(driver_state);
     }
     
-    err = sf8xxx_nm_set_driver_state(SF8XXX_NM_DRIVER_STATE_WRITE_INTERNAL_CURRENT_SET);
+    err = sf8xxx_nm_set_state(SF8XXX_NM_STATE_WRITE_INTERNAL_CURRENT_SET);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки состояния драйвера.");
     }
     
-    err = sf8xxx_nm_set_driver_state(SF8XXX_NM_DRIVER_STATE_WRITE_INTERNAL_ENABLE);
+    err = sf8xxx_nm_set_state(SF8XXX_NM_STATE_WRITE_INTERNAL_ENABLE);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки состояния драйвера.");
     }
     
-    err = sf8xxx_nm_set_driver_state(SF8XXX_NM_DRIVER_STATE_WRITE_DENY_INTERLOCK);
+    err = sf8xxx_nm_set_state(SF8XXX_NM_STATE_WRITE_DENY_INTERLOCK);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки состояния драйвера.");
     }
@@ -159,7 +159,7 @@ void ST8XXX_NM_task(void *pvParams) {
     float tec_mes_val = -100;
     float ext_ntc_sens = -100;
     while (1) {
-        err = sf8xxx_nm_set_driver_state(SF8XXX_NM_DRIVER_STATE_WRITE_START);
+        err = sf8xxx_nm_set_state(SF8XXX_NM_STATE_WRITE_START);
         if (err != SF8XXX_NM_OK) {
             ESP_LOGE(TAG, "Ошибка включения ЛД.");
         } else {

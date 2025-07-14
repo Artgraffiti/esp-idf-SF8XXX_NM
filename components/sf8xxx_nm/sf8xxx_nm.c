@@ -258,23 +258,23 @@ sf8xxx_nm_err_t sf8xxx_nm_get_measured_voltage(float *measured_voltage_val) {
 }
 
 // State of the driver
-sf8xxx_nm_err_t sf8xxx_nm_get_driver_state(sf8xxx_nm_driver_state_info_t *driver_state) {
+sf8xxx_nm_err_t sf8xxx_nm_get_state(sf8xxx_nm_state_info_t *drv_state) {
     uint16_t raw_flags;
     sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DRIVER_STATE, &raw_flags);
     if (err != SF8XXX_NM_OK) {
         return err;
     }
 
-    driver_state->is_powered_on = (raw_flags & SF8XXX_NM_DRIVER_STATE_POWERED_ON) != 0;
-    driver_state->is_started = (raw_flags & SF8XXX_NM_DRIVER_STATE_STARTED) != 0;
-    driver_state->current_set_internal = (raw_flags & SF8XXX_NM_DRIVER_STATE_CURRENT_SET_INTERNAL) != 0;
-    driver_state->enable_internal = (raw_flags & SF8XXX_NM_DRIVER_STATE_ENABLE_INTERNAL) != 0;
-    driver_state->ext_ntc_interlock_denied = (raw_flags & SF8XXX_NM_DRIVER_STATE_EXT_NTC_INTERLOCK_DENIED) != 0;
-    driver_state->interlock_denied = (raw_flags & SF8XXX_NM_DRIVER_STATE_INTERLOCK_DENIED) != 0;
+    drv_state->is_powered_on = (raw_flags & SF8XXX_NM_STATE_POWERED_ON) != 0;
+    drv_state->is_started = (raw_flags & SF8XXX_NM_STATE_STARTED) != 0;
+    drv_state->current_set_internal = (raw_flags & SF8XXX_NM_STATE_CURRENT_SET_INTERNAL) != 0;
+    drv_state->enable_internal = (raw_flags & SF8XXX_NM_STATE_ENABLE_INTERNAL) != 0;
+    drv_state->ext_ntc_interlock_denied = (raw_flags & SF8XXX_NM_STATE_EXT_NTC_INTERLOCK_DENIED) != 0;
+    drv_state->interlock_denied = (raw_flags & SF8XXX_NM_STATE_INTERLOCK_DENIED) != 0;
 
     return SF8XXX_NM_OK;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_driver_state(sf8xxx_nm_driver_state_w_flags_t flag) {
+sf8xxx_nm_err_t sf8xxx_nm_set_state(sf8xxx_nm_state_w_flags_t flag) {
     return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_DRIVER_STATE, (uint16_t)flag);
 }
 

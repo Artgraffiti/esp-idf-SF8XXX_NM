@@ -88,26 +88,26 @@ typedef enum {
 } sf8xxx_nm_param_code_t;
 
 typedef enum {
-    SF8XXX_NM_DRIVER_STATE_POWERED_ON =               (1 << 0), // 0    bit: 1 – Device is powered on (always = 1)
-    SF8XXX_NM_DRIVER_STATE_STARTED =                  (1 << 1), // 1-st bit: 0 – Stopped; 1 – Started
-    SF8XXX_NM_DRIVER_STATE_CURRENT_SET_INTERNAL =     (1 << 2), // 2-nd bit: Current set: 0 – External; 1 – Internal
-    SF8XXX_NM_DRIVER_STATE_ENABLE_INTERNAL =          (1 << 4), // 4-th bit: Enable: 0 – External; 1 – Internal
-    SF8XXX_NM_DRIVER_STATE_EXT_NTC_INTERLOCK_DENIED = (1 << 6), // 6-th bit: External NTC Interlock: 0 – Allowed; 1 – Denied
-    SF8XXX_NM_DRIVER_STATE_INTERLOCK_DENIED =         (1 << 7), // 7-th bit: Interlock: 0 – Allowed; 1 – Denied
-} sf8xxx_nm_driver_state_r_flags_t;
+    SF8XXX_NM_STATE_POWERED_ON =               (1 << 0), // 0    bit: 1 – Device is powered on (always = 1)
+    SF8XXX_NM_STATE_STARTED =                  (1 << 1), // 1-st bit: 0 – Stopped; 1 – Started
+    SF8XXX_NM_STATE_CURRENT_SET_INTERNAL =     (1 << 2), // 2-nd bit: Current set: 0 – External; 1 – Internal
+    SF8XXX_NM_STATE_ENABLE_INTERNAL =          (1 << 4), // 4-th bit: Enable: 0 – External; 1 – Internal
+    SF8XXX_NM_STATE_EXT_NTC_INTERLOCK_DENIED = (1 << 6), // 6-th bit: External NTC Interlock: 0 – Allowed; 1 – Denied
+    SF8XXX_NM_STATE_INTERLOCK_DENIED =         (1 << 7), // 7-th bit: Interlock: 0 – Allowed; 1 – Denied
+} sf8xxx_nm_state_r_flags_t;
 
 typedef enum {
-    SF8XXX_NM_DRIVER_STATE_WRITE_START =                    0x0008, // Start (Enable)
-    SF8XXX_NM_DRIVER_STATE_WRITE_STOP =                     0x0010, // Stop (Disable)
-    SF8XXX_NM_DRIVER_STATE_WRITE_INTERNAL_CURRENT_SET =     0x0020, // Internal current set
-    SF8XXX_NM_DRIVER_STATE_WRITE_EXTERNAL_CURRENT_SET =     0x0040, // External current set
-    SF8XXX_NM_DRIVER_STATE_WRITE_EXTERNAL_ENABLE =          0x0200, // External Enable
-    SF8XXX_NM_DRIVER_STATE_WRITE_INTERNAL_ENABLE =          0x0400, // Internal Enable
-    SF8XXX_NM_DRIVER_STATE_WRITE_ALLOW_INTERLOCK =          0x1000, // Allow Interlock
-    SF8XXX_NM_DRIVER_STATE_WRITE_DENY_INTERLOCK =           0x2000, // Deny Interlock
-    SF8XXX_NM_DRIVER_STATE_WRITE_DENY_EXT_NTC_INTERLOCK =   0x4000, // Deny ext. NTC Interlock
-    SF8XXX_NM_DRIVER_STATE_WRITE_ALLOW_EXT_NTC_INTERLOCK =  0x8000, // Allow ext. NTC Interlock
-} sf8xxx_nm_driver_state_w_flags_t;
+    SF8XXX_NM_STATE_WRITE_START =                    0x0008, // Start (Enable)
+    SF8XXX_NM_STATE_WRITE_STOP =                     0x0010, // Stop (Disable)
+    SF8XXX_NM_STATE_WRITE_INTERNAL_CURRENT_SET =     0x0020, // Internal current set
+    SF8XXX_NM_STATE_WRITE_EXTERNAL_CURRENT_SET =     0x0040, // External current set
+    SF8XXX_NM_STATE_WRITE_EXTERNAL_ENABLE =          0x0200, // External Enable
+    SF8XXX_NM_STATE_WRITE_INTERNAL_ENABLE =          0x0400, // Internal Enable
+    SF8XXX_NM_STATE_WRITE_ALLOW_INTERLOCK =          0x1000, // Allow Interlock
+    SF8XXX_NM_STATE_WRITE_DENY_INTERLOCK =           0x2000, // Deny Interlock
+    SF8XXX_NM_STATE_WRITE_DENY_EXT_NTC_INTERLOCK =   0x4000, // Deny ext. NTC Interlock
+    SF8XXX_NM_STATE_WRITE_ALLOW_EXT_NTC_INTERLOCK =  0x8000, // Allow ext. NTC Interlock
+} sf8xxx_nm_state_w_flags_t;
 
 typedef enum {
     SF8XXX_NM_LOCK_STATUS_INTERLOCK =           (1 << 1), // 1-st bit: Interlock
@@ -142,7 +142,7 @@ typedef struct {
     unsigned int reserved_bit_5             : 1; // 5th bit: Reserved
     unsigned int ext_ntc_interlock_denied   : 1; // 6th bit: External NTC Interlock: 0 – Allowed; 1 – Denied
     unsigned int interlock_denied           : 1; // 7th bit: Interlock: 0 – Allowed; 1 – Denied
-} sf8xxx_nm_driver_state_info_t;
+} sf8xxx_nm_state_info_t;
 
 typedef struct {
     unsigned int reserved_bit_0             : 1; // 0th bit: Reserved
