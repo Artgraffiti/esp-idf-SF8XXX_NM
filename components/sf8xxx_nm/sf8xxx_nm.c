@@ -25,7 +25,7 @@ sf8xxx_nm_err_t sf8xxx_nm_init(void) {
     ESP_ERROR_CHECK(uart_set_pin(SF8XXX_NM_UART_PORT_NUM, SF8XXX_NM_UART_TXD, SF8XXX_NM_UART_RXD, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
 
     ESP_LOGI(TAG, "UART initialized on port %d with baud rate %d", SF8XXX_NM_UART_PORT_NUM, SF8XXX_NM_UART_BAUDRATE);
-    return ESP_OK;
+    return SF8XXX_NM_OK;
 }
 
 void sf8xxx_nm_deinit(void) {
@@ -33,37 +33,14 @@ void sf8xxx_nm_deinit(void) {
     ESP_LOGI(TAG, "UART deinitialized on port %d", SF8XXX_NM_UART_PORT_NUM);
 }
 
-static sf8xxx_nm_err_t sf8xxx_nm_parse_protocol_error_response(const char *response) {
-    if (response == NULL)
-        return SF8XXX_NM_ERROR_RESERVED;
-
-    if (strcmp(response, SF8XXX_NM_PROTOCOL_ERROR_INTERNAL_BUFFER_OVERFLOW) == 0) {
-        ESP_LOGE(TAG, "Protocol Error: Internal Buffer Overflow / Invalid Command Format (E0000)");
-        return SF8XXX_NM_ERROR_RESERVED;
-    }
-    if (strcmp(response, SF8XXX_NM_PROTOCOL_ERROR_UNKNOWN_COMMAND) == 0) {
-        ESP_LOGE(TAG, "Protocol Error: Unknown Command (E0001)");
-        return SF8XXX_NM_ERROR_RESERVED;
-    }
-    if (strcmp(response, SF8XXX_NM_PROTOCOL_ERROR_CRC) == 0) {
-        ESP_LOGE(TAG, "Protocol Error: CRC Error (E0002)");
-        return SF8XXX_NM_ERROR_RESERVED;
-    }
-    if (strcmp(response, SF8XXX_NM_PROTOCOL_ERROR_PARAMETER_NOT_EXIST) == 0) {
-        ESP_LOGE(TAG, "Protocol Error: Parameter does not exist (K0000 0000)");
-        return SF8XXX_NM_ERROR_PARAMETER_OUT_OF_RANGE;
-    }
-    return SF8XXX_NM_OK;
-}
-
 int sf8xxx_nm_send_command(const char *command) {
     if (command == NULL)
-        return SF8XXX_NM_ERROR_RESERVED;
+        return SF8XXX_NM_E_NULL_PTR;
 
     size_t len = strlen(command);
     int tx_bytes = uart_write_bytes(SF8XXX_NM_UART_PORT_NUM, command, len);
     ESP_LOGD(TAG, "Sent %d bytes: %s", tx_bytes, command);
-    return tx_bytes;
+    return (tx_bytes >= 0) ? tx_bytes : SF8XXX_NM_E_UART_TX;
 }
 
 int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
@@ -71,7 +48,7 @@ int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
     TickType_t timeout_ticks = pdMS_TO_TICKS(SF8XXX_NM_RESPONSE_TIMEOUT_MS);
 
     if (buffer == NULL)
-        return SF8XXX_NM_ERROR_RESERVED;
+        return SF8XXX_NM_E_NULL_PTR;
 
     while (idx < buffer_len - 1) {
         uint8_t ch;
@@ -83,7 +60,7 @@ int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
             }
         } else {
             ESP_LOGW(TAG, "Timeout or no data received.");
-            break;
+            return SF8XXX_NM_E_UART_RX;
         }
     }
     buffer[idx] = '\0';
@@ -95,10 +72,9 @@ sf8xxx_nm_err_t sf8xxx_nm_set_parameter(sf8xxx_nm_param_code_t param_num, uint16
     char command[SF8XXX_NM_TX_BUF_SIZE];
     snprintf(command, SF8XXX_NM_TX_BUF_SIZE, "P%04X %04X\r", param_num, value);
     if (sf8xxx_nm_send_command(command) < 0) {
-        return SF8XXX_NM_ERROR_RESERVED;
+        return SF8XXX_NM_E_UART_TX;
     }
 
-    // User delay
     esp_rom_delay_us(SF8XXX_NM_DELAY_BTW_CMDS * 1000);
 
     return SF8XXX_NM_OK;
@@ -110,31 +86,29 @@ sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16
     int bytes_read;
 
     if (value == NULL)
-        return SF8XXX_NM_ERROR_RESERVED;
+        return SF8XXX_NM_E_NULL_PTR;
 
     snprintf(command, SF8XXX_NM_TX_BUF_SIZE, "J%04X\r", param_num);
     if (sf8xxx_nm_send_command(command) < 0) {
-        return SF8XXX_NM_ERROR_RESERVED;
+        return SF8XXX_NM_E_UART_TX;
     }
 
     bytes_read = sf8xxx_nm_receive_response(response, SF8XXX_NM_RX_BUF_SIZE);
     if (bytes_read <= 0) {
-        return SF8XXX_NM_ERROR_RESERVED;
+        return SF8XXX_NM_E_UART_RX;
     }
 
-    // Expected response format: K<param_hex> <value_hex><CR>
     uint16_t received_param_num;
     unsigned int received_value_u;
 
     if (sscanf(response, "K%4hX %4X\r", &received_param_num, &received_value_u) != 2) {
-        return SF8XXX_NM_ERROR_PARSE;
+        return SF8XXX_NM_E_PARSE;
     }
     if (received_param_num != param_num) {
-        return SF8XXX_NM_ERROR_PARSE;
+        return SF8XXX_NM_E_PARSE;
     }
     *value = (uint16_t)received_value_u;
 
-    // User delay
     esp_rom_delay_us(SF8XXX_NM_DELAY_BTW_CMDS * 1000);
 
     return SF8XXX_NM_OK;

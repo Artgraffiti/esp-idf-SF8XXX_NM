@@ -13,29 +13,18 @@
 #define SF8XXX_NM_RX_BUF_SIZE CONFIG_SF8XXX_NM_RX_BUF_SIZE
 #define SF8XXX_NM_TX_BUF_SIZE CONFIG_SF8XXX_NM_TX_BUF_SIZE
 
-#define SF8XXX_NM_PROTOCOL_ERROR_INTERNAL_BUFFER_OVERFLOW   "E0000\r" // E0000: Digital buffer overflow or command format invalid
-#define SF8XXX_NM_PROTOCOL_ERROR_UNKNOWN_COMMAND            "E0001\r" // E0001: Unknown or unrecognized command
-#define SF8XXX_NM_PROTOCOL_ERROR_CRC                        "E0002\r" // E0002: CRC failure
-#define SF8XXX_NM_PROTOCOL_ERROR_PARAMETER_NOT_EXIST        "K0000 0000\r"  // K0000 0000: Request or set parameter that does not exist. 
+#define SF8XXX_NM_PROTO_E_INTERNAL_BUFFER_OVERFLOW   "E0000\r" // E0000: Digital buffer overflow or command format invalid
+#define SF8XXX_NM_PROTO_E_UNKNOWN_COMMAND            "E0001\r" // E0001: Unknown or unrecognized command
+#define SF8XXX_NM_PROTO_E_CRC                        "E0002\r" // E0002: CRC failure
+#define SF8XXX_NM_PROTO_E_PARAMETER_NOT_EXIST        "K0000 0000\r"  // K0000 0000: Request or set parameter that does not exist. 
 
 typedef enum {
-    SF8XXX_NM_OK =                              0x00, // No error
-    SF8XXX_NM_ERROR_SERIAL_PROTOCOL =           0x01, // Serial protocol error
-    SF8XXX_NM_ERROR_PARAMETER_OUT_OF_RANGE =    0x02, // Parameter out of range
-    SF8XXX_NM_ERROR_UNKNOWN_COMMAND =           0x03, // Unknown command
-    SF8XXX_NM_ERROR_INTERNAL_PROBLEM =          0x04, // Internal problem
-    SF8XXX_NM_ERROR_LD_OVERCURRENT =            0x05, // LD Overcurrent
-    SF8XXX_NM_ERROR_LD_OVERHEAT =               0x06, // LD Overheat
-    SF8XXX_NM_ERROR_EXTERNAL_NTC_INTERLOCK =    0x07, // External NTC Interlock
-    SF8XXX_NM_ERROR_TEC_ERROR =                 0x08, // TEC error
-    SF8XXX_NM_ERROR_TEC_SELF_HEAT =             0x09, // TEC self-heat
-    SF8XXX_NM_ERROR_INTERLOCK_INPUT =           0x0A, // Interlock input
-    SF8XXX_NM_ERROR_FIRMWARE_UPDATE =           0x0B, // Firmware update error
-    SF8XXX_NM_ERROR_NO_LD_CONNECTED =           0x0C, // No LD connected
-    SF8XXX_NM_ERROR_NO_EXTERNAL_NTC_CONNECTED = 0x0D, // No external NTC connected
-    SF8XXX_NM_ERROR_COMMUNICATION_TIMEOUT =     0x0E, // Communication timeout
-    SF8XXX_NM_ERROR_PARSE =                     0x0F,
-    SF8XXX_NM_ERROR_RESERVED =                  0x10,
+    SF8XXX_NM_OK =                              0x00,
+    SF8XXX_NM_E_NULL_PTR =                      0x01,
+    SF8XXX_NM_E_UART_TX =                       0x02,
+    SF8XXX_NM_E_UART_RX =                       0x03,
+    SF8XXX_NM_E_PARSE =                         0x04,
+    SF8XXX_NM_E_RESERVED =                      0xff,
 } sf8xxx_nm_err_t;
 
 typedef enum {
