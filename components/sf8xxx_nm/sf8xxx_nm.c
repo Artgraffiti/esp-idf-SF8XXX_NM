@@ -34,21 +34,15 @@ void sf8xxx_nm_deinit(void) {
 }
 
 int sf8xxx_nm_send_command(const char *command) {
-    if (command == NULL)
-        return SF8XXX_NM_E_NULL_PTR;
-
     size_t len = strlen(command);
     int tx_bytes = uart_write_bytes(SF8XXX_NM_UART_PORT_NUM, command, len);
     ESP_LOGD(TAG, "Sent %d bytes: %s", tx_bytes, command);
-    return (tx_bytes >= 0) ? tx_bytes : SF8XXX_NM_E_UART_TX;
+    return tx_bytes;
 }
 
-int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
+int sf8xxx_nm_recv_response(char *buffer, int buffer_len) {
     int idx = 0;
     TickType_t timeout_ticks = pdMS_TO_TICKS(SF8XXX_NM_RESPONSE_TIMEOUT_MS);
-
-    if (buffer == NULL)
-        return SF8XXX_NM_E_NULL_PTR;
 
     while (idx < buffer_len - 1) {
         uint8_t ch;
@@ -60,7 +54,7 @@ int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
             }
         } else {
             ESP_LOGW(TAG, "Timeout or no data received.");
-            return SF8XXX_NM_E_UART_RX;
+            break;
         }
     }
     buffer[idx] = '\0';
@@ -68,7 +62,7 @@ int sf8xxx_nm_receive_response(char *buffer, int buffer_len) {
     return idx;
 }
 
-sf8xxx_nm_err_t sf8xxx_nm_set_parameter(sf8xxx_nm_param_code_t param_num, uint16_t value) {
+sf8xxx_nm_err_t sf8xxx_nm_set_param(sf8xxx_nm_param_t param_num, uint16_t value) {
     char command[SF8XXX_NM_TX_BUF_SIZE];
     snprintf(command, SF8XXX_NM_TX_BUF_SIZE, "P%04X %04X\r", param_num, value);
     if (sf8xxx_nm_send_command(command) < 0) {
@@ -80,7 +74,7 @@ sf8xxx_nm_err_t sf8xxx_nm_set_parameter(sf8xxx_nm_param_code_t param_num, uint16
     return SF8XXX_NM_OK;
 }
 
-sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16_t *value) {
+sf8xxx_nm_err_t sf8xxx_nm_get_param(sf8xxx_nm_param_t param_num, uint16_t *value) {
     char command[SF8XXX_NM_TX_BUF_SIZE];
     char response[SF8XXX_NM_RX_BUF_SIZE];
     int bytes_read;
@@ -93,7 +87,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16
         return SF8XXX_NM_E_UART_TX;
     }
 
-    bytes_read = sf8xxx_nm_receive_response(response, SF8XXX_NM_RX_BUF_SIZE);
+    bytes_read = sf8xxx_nm_recv_response(response, SF8XXX_NM_RX_BUF_SIZE);
     if (bytes_read <= 0) {
         return SF8XXX_NM_E_UART_RX;
     }
@@ -118,7 +112,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_parameter(sf8xxx_nm_param_code_t param_num, uint16
 // Frequency (0.1 Hz)
 sf8xxx_nm_err_t sf8xxx_nm_get_freq(float *freq_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_FREQUENCY_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_FREQUENCY_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
         *freq_val = UINT16_TO_FLOAT(value, 10.0f);
     }
@@ -126,7 +120,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_freq(float *freq_val) {
 }
 sf8xxx_nm_err_t sf8xxx_nm_get_freq_min(float *freq_min) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_FREQUENCY_MIN, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_FREQUENCY_MIN, &value);
     if (err == SF8XXX_NM_OK) {
         *freq_min = UINT16_TO_FLOAT(value, 10.0f);
     }
@@ -134,7 +128,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_freq_min(float *freq_min) {
 }
 sf8xxx_nm_err_t sf8xxx_nm_get_freq_max(float *freq_max) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_FREQUENCY_MAX, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_FREQUENCY_MAX, &value);
     if (err == SF8XXX_NM_OK) {
         *freq_max = UINT16_TO_FLOAT(value, 10.0f);
     }
@@ -142,117 +136,117 @@ sf8xxx_nm_err_t sf8xxx_nm_get_freq_max(float *freq_max) {
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_freq(float freq_val) {
     uint16_t value = FLOAT_TO_UINT16(freq_val, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_FREQUENCY_VALUE, value);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_FREQUENCY_VALUE, value);
 }
 
 // Duration (0.1 ms)
-sf8xxx_nm_err_t sf8xxx_nm_get_duration(float *duration_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_dur(float *dur_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DURATION_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_DURATION_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *duration_val = UINT16_TO_FLOAT(value, 10.0f);
+        *dur_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_duration_min(float *duration_min) {
+sf8xxx_nm_err_t sf8xxx_nm_get_dur_min(float *dur_min) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DURATION_MIN, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_DURATION_MIN, &value);
     if (err == SF8XXX_NM_OK) {
-        *duration_min = UINT16_TO_FLOAT(value, 10.0f);
+        *dur_min = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_duration_max(float *duration_max) {
+sf8xxx_nm_err_t sf8xxx_nm_get_dur_max(float *dur_max) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DURATION_MAX, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_DURATION_MAX, &value);
     if (err == SF8XXX_NM_OK) {
-        *duration_max = UINT16_TO_FLOAT(value, 10.0f);
+        *dur_max = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_duration(float duration_val) {
-    uint16_t value = FLOAT_TO_UINT16(duration_val, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_DURATION_VALUE, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_dur(float dur_val) {
+    uint16_t value = FLOAT_TO_UINT16(dur_val, 10.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_DURATION_VALUE, value);
 }
 
 // Current (0.1 mA)
-sf8xxx_nm_err_t sf8xxx_nm_get_current(float *current_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_cur(float *cur_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *current_val = UINT16_TO_FLOAT(value, 10.0f);
+        *cur_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_current_min(float *current_min) {
+sf8xxx_nm_err_t sf8xxx_nm_get_cur_min(float *cur_min) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_MIN, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_MIN, &value);
     if (err == SF8XXX_NM_OK) {
-        *current_min = UINT16_TO_FLOAT(value, 10.0f);
+        *cur_min = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_current_max(float *current_max) {
+sf8xxx_nm_err_t sf8xxx_nm_get_cur_max(float *cur_max) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_MAX, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_MAX, &value);
     if (err == SF8XXX_NM_OK) {
-        *current_max = UINT16_TO_FLOAT(value, 10.0f);
+        *cur_max = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_current_max_limit(float *current_max_limit) {
+sf8xxx_nm_err_t sf8xxx_nm_get_cur_max_lim(float *cur_max_lim) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_MAX_LIMIT, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_MAX_LIMIT, &value);
     if (err == SF8XXX_NM_OK) {
-        *current_max_limit = UINT16_TO_FLOAT(value, 10.0f);
+        *cur_max_lim = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_measured_current(float *measured_current_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_meas_cur(float *meas_cur_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_MEASURED_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_MEASURED_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *measured_current_val = UINT16_TO_FLOAT(value, 10.0f);
+        *meas_cur_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_current_protection_threshold(float *threshold_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_cur_prot_thr(float *thr_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_PROTECTION_THRESHOLD, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_PROTECTION_THRESHOLD, &value);
     if (err == SF8XXX_NM_OK) {
-        *threshold_val = UINT16_TO_FLOAT(value, 10.0f);
+        *thr_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_current(float current_val) {
-    uint16_t value = FLOAT_TO_UINT16(current_val, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_CURRENT_VALUE, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_cur(float cur_val) {
+    uint16_t value = FLOAT_TO_UINT16(cur_val, 10.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_CURRENT_VALUE, value);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_current_max(float current_max) {
-    uint16_t value = FLOAT_TO_UINT16(current_max, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_CURRENT_MAX, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_cur_max(float cur_max) {
+    uint16_t value = FLOAT_TO_UINT16(cur_max, 10.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_CURRENT_MAX, value);
 }
 
 // Current set calibration (0.01%)
-sf8xxx_nm_err_t sf8xxx_nm_get_calibration_current(float *calibration_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_cal_cur(float *cal_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_CURRENT_SET_CALIBRATION_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_CURRENT_SET_CALIBRATION_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *calibration_val = UINT16_TO_FLOAT(value, 100.0f);
+        *cal_val = UINT16_TO_FLOAT(value, 100.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_calibration_current(float calibration_val) {
-    uint16_t value = FLOAT_TO_UINT16(calibration_val, 100.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_CURRENT_SET_CALIBRATION_VALUE, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_cal_cur(float cal_val) {
+    uint16_t value = FLOAT_TO_UINT16(cal_val, 100.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_CURRENT_SET_CALIBRATION_VALUE, value);
 }
 
 // Voltage (0.1 V)
-sf8xxx_nm_err_t sf8xxx_nm_get_measured_voltage(float *measured_voltage_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_meas_volt(float *meas_volt_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_VOLTAGE_MEASURED_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_VOLTAGE_MEASURED_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *measured_voltage_val = UINT16_TO_FLOAT(value, 10.0f);
+        *meas_volt_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
@@ -260,7 +254,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_measured_voltage(float *measured_voltage_val) {
 // State of the driver
 sf8xxx_nm_err_t sf8xxx_nm_get_state(sf8xxx_nm_state_info_t *drv_state) {
     uint16_t raw_flags;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DRIVER_STATE, &raw_flags);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_DRIVER_STATE, &raw_flags);
     if (err != SF8XXX_NM_OK) {
         return err;
     }
@@ -275,21 +269,21 @@ sf8xxx_nm_err_t sf8xxx_nm_get_state(sf8xxx_nm_state_info_t *drv_state) {
     return SF8XXX_NM_OK;
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_state(sf8xxx_nm_state_w_flags_t flag) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_DRIVER_STATE, (uint16_t)flag);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_DRIVER_STATE, (uint16_t)flag);
 }
 
 // Serial number
 sf8xxx_nm_err_t sf8xxx_nm_get_serial_number(uint16_t *serial_number) {
-    return sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_SERIAL_NUMBER, serial_number);
+    return sf8xxx_nm_get_param(SF8XXX_NM_PARAM_SERIAL_NUMBER, serial_number);
 }
 sf8xxx_nm_err_t sf8xxx_nm_get_device_id(uint16_t *device_id) {
-    return sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_DEVICE_ID, device_id);
+    return sf8xxx_nm_get_param(SF8XXX_NM_PARAM_DEVICE_ID, device_id);
 }
 
 // Lock status (bit mask)
 sf8xxx_nm_err_t sf8xxx_nm_get_lock_status(sf8xxx_nm_lock_status_info_t *lock_status) {
     uint16_t raw_flags;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_LOCK_STATUS, &raw_flags);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_LOCK_STATUS, &raw_flags);
     if (err != SF8XXX_NM_OK) {
         return err;
     }
@@ -305,65 +299,65 @@ sf8xxx_nm_err_t sf8xxx_nm_get_lock_status(sf8xxx_nm_lock_status_info_t *lock_sta
 }
 
 // Save parameters
-sf8xxx_nm_err_t sf8xxx_nm_save_parameters(void) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_SAVE_PARAMETERS, 1);
+sf8xxx_nm_err_t sf8xxx_nm_save_params(void) {
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_SAVE_PARAMETERS, 1);
 }
 
 // Reset parameters
-sf8xxx_nm_err_t sf8xxx_nm_reset_parameters(void) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_RESET_PARAMETERS, 1);
+sf8xxx_nm_err_t sf8xxx_nm_reset_params(void) {
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_RESET_PARAMETERS, 1);
 }
 
 // External NTC sensor temperature (0.1°C)
-sf8xxx_nm_err_t sf8xxx_nm_get_external_ntc_temp_lower_limit(float *temp_limit) {
+sf8xxx_nm_err_t sf8xxx_nm_get_ext_ntc_temp_lower_lim(float *temp_lim) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_LOWER_LIMIT, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_LOWER_LIMIT, &value);
     if (err == SF8XXX_NM_OK) {
-        *temp_limit = UINT16_TO_FLOAT(value, 10.0f);
+        *temp_lim = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_external_ntc_temp_upper_limit(float *temp_limit) {
+sf8xxx_nm_err_t sf8xxx_nm_get_ext_ntc_temp_upper_lim(float *temp_lim) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT, &value);
     if (err == SF8XXX_NM_OK) {
-        *temp_limit = UINT16_TO_FLOAT(value, 10.0f);
+        *temp_lim = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_external_ntc_temp_measured(float *measured_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_ext_ntc_temp_meas(float *meas_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_MEASURED_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_MEASURED_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *measured_val = UINT16_TO_FLOAT(value, 10.0f);
+        *meas_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_b25_100_external_ntc(float *b25_100_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_ext_ntc_b25_100(float *b25_100_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC, &value);
     if (err == SF8XXX_NM_OK) {
         *b25_100_val = UINT16_TO_FLOAT(value, 1.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_external_ntc_sensor_temp_lower_limit(float temp_limit) {
-    uint16_t value = FLOAT_TO_UINT16(temp_limit, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_LOWER_LIMIT, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_ext_ntc_temp_lower_lim(float temp_lim) {
+    uint16_t value = FLOAT_TO_UINT16(temp_lim, 10.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_LOWER_LIMIT, value);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_external_ntc_sensor_temp_upper_limit(float temp_limit) {
-    uint16_t value = FLOAT_TO_UINT16(temp_limit, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_ext_ntc_temp_upper_lim(float temp_lim) {
+    uint16_t value = FLOAT_TO_UINT16(temp_lim, 10.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_EXTERNAL_NTC_SENSOR_TEMP_UPPER_LIMIT, value);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_external_ntc_sensor_b25_100(float *b25_100_val) {
-    uint16_t value = FLOAT_TO_UINT16(*b25_100_val, 1.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_ext_ntc_b25_100(float b25_100_val) {
+    uint16_t value = FLOAT_TO_UINT16(b25_100_val, 1.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_B25_100_EXTERNAL_NTC, value);
 }
 
 // TEC temperature (0.01°C)
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp(float *temp_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
         *temp_val = UINT16_TO_FLOAT(value, 100.0f);
     }
@@ -371,7 +365,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp(float *temp_val) {
 }
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_max(float *temp_max) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX, &value);
     if (err == SF8XXX_NM_OK) {
         *temp_max = UINT16_TO_FLOAT(value, 100.0f);
     }
@@ -379,77 +373,77 @@ sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_max(float *temp_max) {
 }
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_min(float *temp_min) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN, &value);
     if (err == SF8XXX_NM_OK) {
         *temp_min = UINT16_TO_FLOAT(value, 100.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_max_limit(float *temp_limit) {
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_max_lim(float *temp_lim) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX_LIMIT, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX_LIMIT, &value);
     if (err == SF8XXX_NM_OK) {
-        *temp_limit = UINT16_TO_FLOAT(value, 100.0f);
+        *temp_lim = UINT16_TO_FLOAT(value, 100.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_min_limit(float *temp_limit) {
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_min_lim(float *temp_lim) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN_LIMIT, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN_LIMIT, &value);
     if (err == SF8XXX_NM_OK) {
-        *temp_limit = UINT16_TO_FLOAT(value, 100.0f);
+        *temp_lim = UINT16_TO_FLOAT(value, 100.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_measured(float *measured_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_temp_meas(float *meas_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MEASURED_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MEASURED_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *measured_val = UINT16_TO_FLOAT(value, 100.0f);
+        *meas_val = UINT16_TO_FLOAT(value, 100.0f);
     }
     return err;
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_tec_temp(float temp_val) {
     uint16_t value = FLOAT_TO_UINT16(temp_val, 100.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_VALUE, value);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_VALUE, value);
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_tec_temp_max(float temp_max) {
     uint16_t value = FLOAT_TO_UINT16(temp_max, 100.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX, value);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MAX, value);
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_tec_temp_min(float temp_min) {
     uint16_t value = FLOAT_TO_UINT16(temp_min, 100.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN, value);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_TEC_TEMPERATURE_MIN, value);
 }
 
 // TEC current (0.1 A)
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_current(float *current) {
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_meas_cur(float *meas_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_CURRENT_MEASURED_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_CURRENT_MEASURED_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *current = UINT16_TO_FLOAT(value, 10.0f);
+        *meas_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_current_limit(float *current_limit) {
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_cur_lim(float *cur_lim) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_CURRENT_LIMIT, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_CURRENT_LIMIT, &value);
     if (err == SF8XXX_NM_OK) {
-        *current_limit = UINT16_TO_FLOAT(value, 10.0f);
+        *cur_lim = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_tec_current_limit(float current_limit) {
-    uint16_t value = FLOAT_TO_UINT16(current_limit, 10.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_TEC_CURRENT_LIMIT, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_tec_cur_lim(float cur_lim) {
+    uint16_t value = FLOAT_TO_UINT16(cur_lim, 10.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_TEC_CURRENT_LIMIT, value);
 }
 
 // TEC voltage (0.1 V)
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_voltage(float *measured_val) {
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_meas_volt(float *meas_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_VOLTAGE_MEASURED_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_VOLTAGE_MEASURED_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *measured_val = UINT16_TO_FLOAT(value, 10.0f);
+        *meas_val = UINT16_TO_FLOAT(value, 10.0f);
     }
     return err;
 }
@@ -457,7 +451,7 @@ sf8xxx_nm_err_t sf8xxx_nm_get_tec_measured_voltage(float *measured_val) {
 // State of the TEC
 sf8xxx_nm_err_t sf8xxx_nm_get_tec_state(sf8xxx_nm_tec_state_info_t *tec_state) {
     uint16_t raw_flags;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_STATE, &raw_flags);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_STATE, &raw_flags);
     if (err != SF8XXX_NM_OK) {
         return err;
     }
@@ -469,51 +463,51 @@ sf8xxx_nm_err_t sf8xxx_nm_get_tec_state(sf8xxx_nm_tec_state_info_t *tec_state) {
     return SF8XXX_NM_OK;
 }
 sf8xxx_nm_err_t sf8xxx_nm_set_tec_state(sf8xxx_nm_tec_state_w_flags_t flag) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_TEC_STATE, (uint16_t)flag);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_TEC_STATE, (uint16_t)flag);
 }
 
-// Current set callibration (0.01%)
-sf8xxx_nm_err_t sf8xxx_nm_get_tec_calibration_current(float *calibration_val) {
+// Current set calibration (0.01%)
+sf8xxx_nm_err_t sf8xxx_nm_get_tec_cal_cur(float *cal_val) {
     uint16_t value;
-    sf8xxx_nm_err_t err = sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_TEC_CURRENT_SET_CALIBRATION_VALUE, &value);
+    sf8xxx_nm_err_t err = sf8xxx_nm_get_param(SF8XXX_NM_PARAM_TEC_CURRENT_SET_CALIBRATION_VALUE, &value);
     if (err == SF8XXX_NM_OK) {
-        *calibration_val = UINT16_TO_FLOAT(value, 100.0f);
+        *cal_val = UINT16_TO_FLOAT(value, 100.0f);
     }
     return err;
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_tec_calibration_current(float calibration_val) {
-    uint16_t value = FLOAT_TO_UINT16(calibration_val, 100.0f);
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_TEC_CURRENT_SET_CALIBRATION_VALUE, value);
+sf8xxx_nm_err_t sf8xxx_nm_set_tec_cal_cur(float cal_val) {
+    uint16_t value = FLOAT_TO_UINT16(cal_val, 100.0f);
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_TEC_CURRENT_SET_CALIBRATION_VALUE, value);
 }
 
 // Internal LD NTC sensor
-sf8xxx_nm_err_t sf8xxx_nm_get_internal_ld_ntc_sensor_b25_100(uint16_t *b25_100_val) {
-    return sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_INTERNAL_LD_NTC_SENSOR_B25_100, b25_100_val);
+sf8xxx_nm_err_t sf8xxx_nm_get_int_ld_ntc_sensor_b25_100(uint16_t *b25_100_val) {
+    return sf8xxx_nm_get_param(SF8XXX_NM_PARAM_INTERNAL_LD_NTC_SENSOR_B25_100, b25_100_val);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_internal_ld_ntc_sensor_b25_100(uint16_t b25_100_val) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_INTERNAL_LD_NTC_SENSOR_B25_100, b25_100_val);
+sf8xxx_nm_err_t sf8xxx_nm_set_int_ld_ntc_sensor_b25_100(uint16_t b25_100_val) {
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_INTERNAL_LD_NTC_SENSOR_B25_100, b25_100_val);
 }
 
 // P coefficient
-sf8xxx_nm_err_t sf8xxx_nm_get_p_coefficient(uint16_t *p_coeff) {
-    return sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_P_COEFFICIENT_VALUE, p_coeff);
+sf8xxx_nm_err_t sf8xxx_nm_get_p_coef(uint16_t *p_coeff) {
+    return sf8xxx_nm_get_param(SF8XXX_NM_PARAM_P_COEFFICIENT_VALUE, p_coeff);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_p_coefficient(uint16_t p_coeff) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_P_COEFFICIENT_VALUE, p_coeff);
+sf8xxx_nm_err_t sf8xxx_nm_set_p_coef(uint16_t p_coeff) {
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_P_COEFFICIENT_VALUE, p_coeff);
 }
 
 // I coefficient
-sf8xxx_nm_err_t sf8xxx_nm_get_i_coefficient(uint16_t *i_coeff) {
-    return sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_I_COEFFICIENT_VALUE, i_coeff);
+sf8xxx_nm_err_t sf8xxx_nm_get_i_coef(uint16_t *i_coeff) {
+    return sf8xxx_nm_get_param(SF8XXX_NM_PARAM_I_COEFFICIENT_VALUE, i_coeff);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_i_coefficient(uint16_t i_coeff) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_I_COEFFICIENT_VALUE, i_coeff);
+sf8xxx_nm_err_t sf8xxx_nm_set_i_coef(uint16_t i_coeff) {
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_I_COEFFICIENT_VALUE, i_coeff);
 }
 
 // D coefficient
-sf8xxx_nm_err_t sf8xxx_nm_get_d_coefficient(uint16_t *d_coeff) {
-    return sf8xxx_nm_get_parameter(SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE, d_coeff);
+sf8xxx_nm_err_t sf8xxx_nm_get_d_coef(uint16_t *d_coeff) {
+    return sf8xxx_nm_get_param(SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE, d_coeff);
 }
-sf8xxx_nm_err_t sf8xxx_nm_set_d_coefficient(uint16_t d_coeff) {
-    return sf8xxx_nm_set_parameter(SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE, d_coeff);
+sf8xxx_nm_err_t sf8xxx_nm_set_d_coef(uint16_t d_coeff) {
+    return sf8xxx_nm_set_param(SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE, d_coeff);
 }

@@ -47,7 +47,7 @@ void ST8XXX_NM_task(void *pvParams) {
     ESP_LOGI(TAG, "Serial number: %d", serial_number);
     ESP_LOGI(TAG, "Device id: %d", device_id);
 
-    float frequency_hz, duration_ms, current_val, tec_temp;
+    float frequency_hz, dur_ms, current_val, tec_temp;
     err = sf8xxx_nm_set_freq(0.0);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки частоты.");
@@ -60,24 +60,24 @@ void ST8XXX_NM_task(void *pvParams) {
         ESP_LOGI(TAG, "Установленная частота испульса: %.1f Hz.", frequency_hz);
     }
     
-    err = sf8xxx_nm_set_duration(6.9);
+    err = sf8xxx_nm_set_dur(6.9);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки продолжительности импульса.");
     }
     
-    err = sf8xxx_nm_get_duration(&duration_ms);
+    err = sf8xxx_nm_get_dur(&dur_ms);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка чтения продолжительности импульса.");
     } else {
-        ESP_LOGI(TAG, "Установленная продолжительность испульса: %.1f ms.", duration_ms);
+        ESP_LOGI(TAG, "Установленная продолжительность испульса: %.1f ms.", dur_ms);
     }
     
-    err = sf8xxx_nm_set_current(150.0);
+    err = sf8xxx_nm_set_cur(150.0);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка установки тока на ЛД.");
     }
     
-    err = sf8xxx_nm_get_current(&current_val);
+    err = sf8xxx_nm_get_cur(&current_val);
     if (err != SF8XXX_NM_OK) {
         ESP_LOGE(TAG, "Ошибка чтения тока на ЛД.");
     } else {
@@ -168,21 +168,21 @@ void ST8XXX_NM_task(void *pvParams) {
                 
         vTaskDelay(pdMS_TO_TICKS(4000));
 
-        err = sf8xxx_nm_get_tec_temp_measured(&tec_mes_val);
+        err = sf8xxx_nm_get_tec_temp_meas(&tec_mes_val);
         if (err != SF8XXX_NM_OK) {
             ESP_LOGE(TAG, "Ошибка запроса замера температуры.");
         } else {
             ESP_LOGI(TAG, "Температура на TEC: %.1f", tec_mes_val);
         }
         
-        err = sf8xxx_nm_get_external_ntc_temp_measured(&ext_ntc_sens);
+        err = sf8xxx_nm_get_ext_ntc_temp_meas(&ext_ntc_sens);
         if (err != SF8XXX_NM_OK) {
             ESP_LOGE(TAG, "Ошибка запроса замера с NTC.");
         } else {
             ESP_LOGI(TAG, "Показания с NTC: %.1f", ext_ntc_sens);
         }
         
-        err = sf8xxx_nm_get_tec_temp_measured(&tec_mes_val);
+        err = sf8xxx_nm_get_tec_temp_meas(&tec_mes_val);
     }
 
     // never reach here

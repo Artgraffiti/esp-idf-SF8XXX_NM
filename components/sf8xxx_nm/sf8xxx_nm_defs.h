@@ -85,7 +85,7 @@ typedef enum {
     SF8XXX_NM_PARAM_D_COEFFICIENT_VALUE =                       0x0A23,
 
     // TODO: SF8XXX_NM_PARAM_EXTENDED_PROTOCOL_INFO =           0x0704, // Used for configuring extended protocol
-} sf8xxx_nm_param_code_t;
+} sf8xxx_nm_param_t;
 
 typedef enum {
     SF8XXX_NM_STATE_POWERED_ON =               (1 << 0), // 0    bit: 1 – Device is powered on (always = 1)
