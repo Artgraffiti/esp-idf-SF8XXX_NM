@@ -24,6 +24,9 @@ typedef enum {
     SF8XXX_NM_E_UART_TX =                       0x02,
     SF8XXX_NM_E_UART_RX =                       0x03,
     SF8XXX_NM_E_PARSE =                         0x04,
+    SF8XXX_NM_E_PARAMETER_OUT_OF_RANGE =        0x05,
+    SF8XXX_NM_E_INTERLOCK_DENIED =              0x06,
+    SF8XXX_NM_E_OVER_CURRENT =                  0x07,
     SF8XXX_NM_E_RESERVED =                      0xff,
 } sf8xxx_nm_err_t;
 
