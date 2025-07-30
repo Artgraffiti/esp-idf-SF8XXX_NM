@@ -27,6 +27,7 @@ typedef enum {
     SF8XXX_NM_E_PARAMETER_OUT_OF_RANGE =        0x05,
     SF8XXX_NM_E_INTERLOCK_DENIED =              0x06,
     SF8XXX_NM_E_OVER_CURRENT =                  0x07,
+    SF8XXX_NM_E_EXTERNAL_NTC_INTERLOCK =        0x08,
     SF8XXX_NM_E_RESERVED =                      0xff,
 } sf8xxx_nm_err_t;
 
